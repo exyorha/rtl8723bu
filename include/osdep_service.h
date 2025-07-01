@@ -37,6 +37,14 @@
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
 #include <linux/sched/signal.h>
 #endif
+
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0))
+static inline int del_timer_sync(struct timer_list *timer)
+{
+	return timer_delete_sync(timer);
+}
+#endif
+
 #include <osdep_service_linux.h>
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
