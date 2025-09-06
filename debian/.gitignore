@@ -1,0 +1,4 @@
+debhelper-build-stamp
+install
+rtl8723-kernel-dkms*
+

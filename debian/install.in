@@ -1,0 +1,9 @@
+core usr/src/rtl8723bu-DEB_VERSION_UPSTREAM
+hal usr/src/rtl8723bu-DEB_VERSION_UPSTREAM
+include usr/src/rtl8723bu-DEB_VERSION_UPSTREAM
+os_dep usr/src/rtl8723bu-DEB_VERSION_UPSTREAM
+platform usr/src/rtl8723bu-DEB_VERSION_UPSTREAM
+dkms.conf usr/src/rtl8723bu-DEB_VERSION_UPSTREAM
+Kconfig usr/src/rtl8723bu-DEB_VERSION_UPSTREAM
+Makefile usr/src/rtl8723bu-DEB_VERSION_UPSTREAM
+debian/etc .

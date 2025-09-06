@@ -1,0 +1,14 @@
+Source: rtl8723
+Section: kernel
+Priority: optional
+Maintainer: Ash <not@a-published.package>
+Build-Depends: debhelper-compat (= 13), dh-sequence-dkms
+Rules-Requires-Root: no
+Standards-Version: 4.6.0
+
+Package: rtl8723-kernel-dkms
+Provides: rtl8723-kernel
+Depends: ${misc:Depends}
+Architecture: all
+Description: Linux driver for the Realtek RTL8723BU Wi-Fi IC based on the
+    vendor code.
