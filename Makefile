@@ -19,7 +19,7 @@ ccflags-y += -Wno-unused-label
 ccflags-y += -Wno-unused-parameter
 ccflags-y += -Wno-unused-function
 ccflags-y += -Wno-unused
-ccflags-y += -DCONFIG_CONCURRENT_MODE
+#ccflags-y += -DCONFIG_CONCURRENT_MODE
 
 ccflags-y += -D__CHECK_ENDIAN__
 
