@@ -15,10 +15,7 @@ EXTRA_CFLAGS += -Wno-unused-variable
 #EXTRA_CFLAGS += -Wno-unused
 #EXTRA_CFLAGS += -Wno-uninitialized
 
-GCC_VER_49 := $(shell echo `$(CC) -dumpversion | cut -f1-2 -d.` \>= 4.9 | bc )
-ifeq ($(GCC_VER_49),1)
 EXTRA_CFLAGS += -Wno-date-time	# Fix compile error && warning on gcc 4.9 and later
-endif
 
 EXTRA_CFLAGS += -I$(src)/include
 
@@ -2232,6 +2229,8 @@ ifneq ($(USER_MODULE_NAME),)
 MODULE_NAME := $(USER_MODULE_NAME)
 endif
 
+export CONFIG_RTL8723BU = m
+
 ifneq ($(KERNELRELEASE),)
 
 ########### this part for *.mk ############################
@@ -2318,8 +2317,6 @@ endif
 obj-$(CONFIG_RTL8723BU) := $(MODULE_NAME).o
 
 else
-
-export CONFIG_RTL8723BU = m
 
 all: modules
 

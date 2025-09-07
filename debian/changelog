@@ -1,3 +1,10 @@
+rtl8723 (5.8.4.2025.09.07) unstable; urgency=medium
+
+  * Updated to the vendor driver version
+    RTL8723BU_WiFi_linux_v5.8.4_33660_COEX20181129-7272.20190624
+
+ -- Ash <not@a-published.package>  Sun, 07 Sep 2025 15:31:34 +0300
+
 rtl8723 (4.3.6.11.2025.09.06) unstable; urgency=medium
 
   * Initial release.
