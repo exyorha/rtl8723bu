@@ -1458,7 +1458,11 @@ static int rtw_net_set_mac_address(struct net_device *pnetdev, void *addr)
 	}
 
 	_rtw_memcpy(adapter_mac_addr(padapter), sa->sa_data, ETH_ALEN); /* set mac addr to adapter */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0)
 	_rtw_memcpy(pnetdev->dev_addr, sa->sa_data, ETH_ALEN); /* set mac addr to net_device */
+#else
+	dev_addr_set(pnetdev, sa->sa_data);
+#endif
 
 #if 0
 	if (rtw_is_hw_init_completed(padapter)) {
@@ -1551,7 +1555,7 @@ static u16 rtw_select_queue(struct net_device *dev, struct sk_buff *skb
 	#else
 	, void *accel_priv
 	#endif
-	#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0)
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0) && LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0)
 	, select_queue_fallback_t fallback
 	#endif
 #endif
@@ -1880,7 +1884,11 @@ int rtw_os_ndev_register(_adapter *adapter, const char *name)
 	u8 rtnl_lock_needed = rtw_rtnl_lock_needed(dvobj);
 
 #ifdef CONFIG_RTW_NAPI
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
 	netif_napi_add(ndev, &adapter->napi, rtw_recv_napi_poll, RTL_NAPI_WEIGHT);
+#else
+	netif_napi_add(ndev, &adapter->napi, rtw_recv_napi_poll);
+#endif
 #endif /* CONFIG_RTW_NAPI */
 
 #if defined(CONFIG_IOCTL_CFG80211)
@@ -1896,7 +1904,11 @@ int rtw_os_ndev_register(_adapter *adapter, const char *name)
 	/* alloc netdev name */
 	rtw_init_netdev_name(ndev, name);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0)
 	_rtw_memcpy(ndev->dev_addr, adapter_mac_addr(adapter), ETH_ALEN);
+#else
+	dev_addr_set(ndev, adapter_mac_addr(adapter));
+#endif
 
 	/* Tell the network stack we exist */
 

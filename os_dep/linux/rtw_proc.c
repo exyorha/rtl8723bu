@@ -13,11 +13,18 @@
  *
  *****************************************************************************/
 
+#include <linux/version.h>
 #include <linux/ctype.h>	/* tolower() */
 #include <drv_types.h>
 #include <hal_data.h>
 #include "rtw_proc.h"
 #include <rtw_btcoex.h>
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 6, 0))
+typedef struct file_operations rtw_proc_file_operations;
+#else
+typedef struct proc_ops rtw_proc_file_operations;
+#endif
 
 #ifdef CONFIG_PROC_DEBUG
 
@@ -37,6 +44,10 @@ inline struct proc_dir_entry *get_rtw_drv_proc(void)
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 10, 0))
 #define PDE_DATA(inode) PDE((inode))->data
 #define proc_get_parent_data(inode) PDE((inode))->parent->data
+#endif
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 17, 0))
+#define pde_data(inode) PDE_DATA(inode)
 #endif
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 24))
@@ -81,7 +92,7 @@ inline struct proc_dir_entry *rtw_proc_create_dir(const char *name, struct proc_
 }
 
 inline struct proc_dir_entry *rtw_proc_create_entry(const char *name, struct proc_dir_entry *parent,
-	const struct file_operations *fops, void * data)
+	const rtw_proc_file_operations *fops, void * data)
 {
 	struct proc_dir_entry *entry;
 
@@ -225,7 +236,7 @@ const int drv_proc_hdls_num = sizeof(drv_proc_hdls) / sizeof(struct rtw_proc_hdl
 static int rtw_drv_proc_open(struct inode *inode, struct file *file)
 {
 	/* struct net_device *dev = proc_get_parent_data(inode); */
-	ssize_t index = (ssize_t)PDE_DATA(inode);
+	ssize_t index = (ssize_t)pde_data(inode);
 	const struct rtw_proc_hdl *hdl = drv_proc_hdls + index;
 	void *private = NULL;
 
@@ -251,7 +262,7 @@ static int rtw_drv_proc_open(struct inode *inode, struct file *file)
 
 static ssize_t rtw_drv_proc_write(struct file *file, const char __user *buffer, size_t count, loff_t *pos)
 {
-	ssize_t index = (ssize_t)PDE_DATA(file_inode(file));
+	ssize_t index = (ssize_t)pde_data(file_inode(file));
 	const struct rtw_proc_hdl *hdl = drv_proc_hdls + index;
 	ssize_t (*write)(struct file *, const char __user *, size_t, loff_t *, void *) = hdl->write;
 
@@ -261,22 +272,38 @@ static ssize_t rtw_drv_proc_write(struct file *file, const char __user *buffer, 
 	return -EROFS;
 }
 
-static const struct file_operations rtw_drv_proc_seq_fops = {
+static const rtw_proc_file_operations rtw_drv_proc_seq_fops = {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 6, 0))
 	.owner = THIS_MODULE,
 	.open = rtw_drv_proc_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = seq_release,
 	.write = rtw_drv_proc_write,
+#else
+	.proc_open = rtw_drv_proc_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = seq_release,
+	.proc_write = rtw_drv_proc_write,
+#endif
 };
 
-static const struct file_operations rtw_drv_proc_sseq_fops = {
+static const rtw_proc_file_operations rtw_drv_proc_sseq_fops = {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 6, 0))
 	.owner = THIS_MODULE,
 	.open = rtw_drv_proc_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = single_release,
 	.write = rtw_drv_proc_write,
+#else
+	.proc_open = rtw_drv_proc_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = single_release,
+	.proc_write = rtw_drv_proc_write,
+#endif
 };
 
 int rtw_drv_proc_init(void)
@@ -4542,7 +4569,7 @@ const int adapter_proc_hdls_num = sizeof(adapter_proc_hdls) / sizeof(struct rtw_
 
 static int rtw_adapter_proc_open(struct inode *inode, struct file *file)
 {
-	ssize_t index = (ssize_t)PDE_DATA(inode);
+	ssize_t index = (ssize_t)pde_data(inode);
 	const struct rtw_proc_hdl *hdl = adapter_proc_hdls + index;
 	void *private = proc_get_parent_data(inode);
 
@@ -4568,7 +4595,7 @@ static int rtw_adapter_proc_open(struct inode *inode, struct file *file)
 
 static ssize_t rtw_adapter_proc_write(struct file *file, const char __user *buffer, size_t count, loff_t *pos)
 {
-	ssize_t index = (ssize_t)PDE_DATA(file_inode(file));
+	ssize_t index = (ssize_t)pde_data(file_inode(file));
 	const struct rtw_proc_hdl *hdl = adapter_proc_hdls + index;
 	ssize_t (*write)(struct file *, const char __user *, size_t, loff_t *, void *) = hdl->write;
 
@@ -4578,22 +4605,38 @@ static ssize_t rtw_adapter_proc_write(struct file *file, const char __user *buff
 	return -EROFS;
 }
 
-static const struct file_operations rtw_adapter_proc_seq_fops = {
+static const rtw_proc_file_operations rtw_adapter_proc_seq_fops = {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 6, 0))
 	.owner = THIS_MODULE,
 	.open = rtw_adapter_proc_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = seq_release,
 	.write = rtw_adapter_proc_write,
+#else
+	.proc_open = rtw_adapter_proc_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = seq_release,
+	.proc_write = rtw_adapter_proc_write,
+#endif
 };
 
-static const struct file_operations rtw_adapter_proc_sseq_fops = {
+static const rtw_proc_file_operations rtw_adapter_proc_sseq_fops = {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 6, 0))
 	.owner = THIS_MODULE,
 	.open = rtw_adapter_proc_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = single_release,
 	.write = rtw_adapter_proc_write,
+#else
+	.proc_open = rtw_adapter_proc_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = single_release,
+	.proc_write = rtw_adapter_proc_write,
+#endif
 };
 
 int proc_get_odm_adaptivity(struct seq_file *m, void *v)
@@ -4715,7 +4758,7 @@ const int odm_proc_hdls_num = sizeof(odm_proc_hdls) / sizeof(struct rtw_proc_hdl
 
 static int rtw_odm_proc_open(struct inode *inode, struct file *file)
 {
-	ssize_t index = (ssize_t)PDE_DATA(inode);
+	ssize_t index = (ssize_t)pde_data(inode);
 	const struct rtw_proc_hdl *hdl = odm_proc_hdls + index;
 	void *private = proc_get_parent_data(inode);
 
@@ -4741,7 +4784,7 @@ static int rtw_odm_proc_open(struct inode *inode, struct file *file)
 
 static ssize_t rtw_odm_proc_write(struct file *file, const char __user *buffer, size_t count, loff_t *pos)
 {
-	ssize_t index = (ssize_t)PDE_DATA(file_inode(file));
+	ssize_t index = (ssize_t)pde_data(file_inode(file));
 	const struct rtw_proc_hdl *hdl = odm_proc_hdls + index;
 	ssize_t (*write)(struct file *, const char __user *, size_t, loff_t *, void *) = hdl->write;
 
@@ -4751,22 +4794,38 @@ static ssize_t rtw_odm_proc_write(struct file *file, const char __user *buffer, 
 	return -EROFS;
 }
 
-static const struct file_operations rtw_odm_proc_seq_fops = {
+static const rtw_proc_file_operations rtw_odm_proc_seq_fops = {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 6, 0))
 	.owner = THIS_MODULE,
 	.open = rtw_odm_proc_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = seq_release,
 	.write = rtw_odm_proc_write,
+#else
+	.proc_open = rtw_odm_proc_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = seq_release,
+	.proc_write = rtw_odm_proc_write,
+#endif
 };
 
-static const struct file_operations rtw_odm_proc_sseq_fops = {
+static const rtw_proc_file_operations rtw_odm_proc_sseq_fops = {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 6, 0))
 	.owner = THIS_MODULE,
 	.open = rtw_odm_proc_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = single_release,
 	.write = rtw_odm_proc_write,
+#else
+	.proc_open = rtw_odm_proc_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = single_release,
+	.proc_write = rtw_odm_proc_write,
+#endif
 };
 
 struct proc_dir_entry *rtw_odm_proc_init(struct net_device *dev)
@@ -4864,7 +4923,7 @@ const int mcc_proc_hdls_num = sizeof(mcc_proc_hdls) / sizeof(struct rtw_proc_hdl
 
 static int rtw_mcc_proc_open(struct inode *inode, struct file *file)
 {
-	ssize_t index = (ssize_t)PDE_DATA(inode);
+	ssize_t index = (ssize_t)pde_data(inode);
 	const struct rtw_proc_hdl *hdl = mcc_proc_hdls + index;
 	void *private = proc_get_parent_data(inode);
 
@@ -4890,7 +4949,7 @@ static int rtw_mcc_proc_open(struct inode *inode, struct file *file)
 
 static ssize_t rtw_mcc_proc_write(struct file *file, const char __user *buffer, size_t count, loff_t *pos)
 {
-	ssize_t index = (ssize_t)PDE_DATA(file_inode(file));
+	ssize_t index = (ssize_t)pde_data(file_inode(file));
 	const struct rtw_proc_hdl *hdl = mcc_proc_hdls + index;
 	ssize_t (*write)(struct file *, const char __user *, size_t, loff_t *, void *) = hdl->write;
 
@@ -4900,7 +4959,7 @@ static ssize_t rtw_mcc_proc_write(struct file *file, const char __user *buffer, 
 	return -EROFS;
 }
 
-static const struct file_operations rtw_mcc_proc_seq_fops = {
+static const rtw_proc_file_operations rtw_mcc_proc_seq_fops = {
 	.owner = THIS_MODULE,
 	.open = rtw_mcc_proc_open,
 	.read = seq_read,
@@ -4909,7 +4968,7 @@ static const struct file_operations rtw_mcc_proc_seq_fops = {
 	.write = rtw_mcc_proc_write,
 };
 
-static const struct file_operations rtw_mcc_proc_sseq_fops = {
+static const rtw_proc_file_operations rtw_mcc_proc_sseq_fops = {
 	.owner = THIS_MODULE,
 	.open = rtw_mcc_proc_open,
 	.read = seq_read,
